@@ -1,28 +1,44 @@
 <template>
     <div class="app">
-        <post-form @create="createPost"/>
+        <h1>Страница с постами</h1>
+        <my-button
+            @click="showDialog"
+            style="margin: 15px 0"
+        >Создать пост
+        </my-button>
+        <my-dialog v-model:show="dialogVisible">
+            <post-form 
+                @create="createPost"
+            />
+        </my-dialog>
         <post-list 
             :posts="posts"
-            @remove="removePost"    
+            @remove="removePost"
+            v-if="!isPostLoading"    
         />
+        <div v-else>Идет загрузка...</div>
     </div>
 </template>
 
 <script>
 import PostForm from "./components/PostForm";
 import PostList from "./components/PostList";
+import MyButton from './components/UI/MyButton.vue';
+import MyDialog from './components/UI/MyDialog.vue';
+import axios from 'axios'
 
 export default {
     components: {
-        PostList, PostForm
+        PostList, 
+        PostForm,
+        MyDialog,
+        MyButton
     },
     data() {
         return {
-            posts: [
-                {id: 1, title: 'Javascript', body: 'Описание поста'},
-                {id: 2, title: 'Javascript 2', body: 'Описание поста 2'},
-                {id: 3, title: 'Javascript 3', body: 'Описание поста 3'},
-            ]
+            posts: [],
+            dialogVisible: false,
+            isPostLoading: false
         }
     },
     methods: {
@@ -31,7 +47,24 @@ export default {
         },
         removePost(post){
             this.posts = this.posts.filter(p => p.id !== post.id)
+        },
+        showDialog(){
+            this.dialogVisible = true
+        },
+        async fetchPosts(){
+            try {
+                this.isPostLoading = true;
+                const response = await axios.get('https://jsonplaceholder.typicode.com/posts?_limit=10');
+                this.posts = response.data;
+            } catch (e) {
+                alert('Ошибка')
+            } finally {
+                this.isPostLoading = false
+            }
         }
+    },
+    mounted(){
+        this.fetchPosts();
     }
 }
 
