@@ -2,6 +2,7 @@
     <div>
         <h1>Страница с постами</h1>
         <my-input
+            v-focus
             v-model="searchQuery"
             placeholder="Поиск..."
         />
@@ -27,7 +28,7 @@
             v-if="!isPostLoading"    
         />
         <div v-else>Идет загрузка...</div>
-        <div ref="observer" class="observer"></div>
+        <div v-intersection="loadMorePosts" class="observer"></div>
         <!-- <div class="page__wrapper">
             <div 
                 v-for="pageNumber in totalPages"
@@ -80,7 +81,8 @@ export default {
     },
     methods: {
         createPost(post) {
-            this.posts.push(post)
+            this.posts.push(post);
+            this.dialogVisible = false;
         },
         removePost(post){
             this.posts = this.posts.filter(p => p.id !== post.id)
@@ -104,7 +106,9 @@ export default {
                 this.posts = response.data;
             } catch (e) {
                 alert('Ошибка')
-            } 
+            } finally {
+                this.isPostLoading = false;
+            }
         },
 
            async loadMorePosts(){
@@ -120,24 +124,22 @@ export default {
                 this.posts = [...this.posts, ...response.data]
             } catch (e) {
                 alert('Ошибка')
-            } finally {
-                this.isPostLoading = false
             }
         }
     },
     mounted(){
         this.fetchPosts();
-        const options = {
-            rootMargin: '0px',
-            threshold: 1.0
-        }
-        const callback = (entries, observer) => {
-            if(entries[0].isIntersecting && this.page < this.totalPages){
-                this.loadMorePosts()
-            }
-        };
-        const observer = new IntersectionObserver(callback, options);
-           observer.observe(this.$refs.observer)
+        // const options = {
+        //     rootMargin: '0px',
+        //     threshold: 1.0
+        // }
+        // const callback = (entries, observer) => {
+        //     if(entries[0].isIntersecting && this.page < this.totalPages){
+        //         this.loadMorePosts()
+        //     }
+        // };
+        // const observer = new IntersectionObserver(callback, options);
+        //    observer.observe(this.$refs.observer)
         },
     computed: {
         sortedPosts(){
